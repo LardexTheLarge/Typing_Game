@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Typing Game</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Typing Speed Test</h1>
+
+      <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <p id="progressText">Sentence 0 of 10</p>
+
+      <div id="sentenceDisplay" class="sentence-display">
+        Press "Start Game" to begin.
+      </div>
+
+      <textarea
+        id="textInput"
+        class="text-input"
+        rows="3"
+        placeholder="Start typing here..."
+        disabled
+      ></textarea>
+
+      <button id="startGameBtn">Start Game</button>
+
+      <div id="resultsDisplay" class="results-display" style="display: none">
+        <h2>Results</h2>
+        <p>Words Per Minute (WPM): <span id="wpmResult"></span></p>
+        <p>Accuracy: <span id="accuracyResult"></span>%</p>
+        <button id="restartGameBtn">Play Again</button>
+      </div>
+    </div>
+
+    <script src="typing_game.js"></script>
+  </body>
+</html>
