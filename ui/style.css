@@ -46,6 +46,27 @@ h1 {
   margin-bottom: 20px;
 }
 
+/* START: Added Timer Styles */
+.timer-info {
+  font-size: 0.9em;
+  color: #555;
+  margin-top: 15px; /* Space above timer text */
+  margin-bottom: 5px; /* Space below timer text */
+}
+
+.timer-progress-container {
+  margin-bottom: 20px; /* Space below timer progress bar */
+}
+
+.timer-progress-bar {
+  width: 100%; /* Starts full */
+  height: 100%;
+  background-color: #e67e22; /* Orange color for timer */
+  border-radius: 5px;
+  transition: width 0.2s linear; /* Smooth transition for timer depletion */
+}
+/* END: Added Timer Styles */
+
 .sentence-display {
   font-size: 1.5em;
   margin-bottom: 20px;
@@ -60,7 +81,7 @@ h1 {
 }
 
 .text-input {
-  width: calc(100% - 22px); /* Account for padding and border */
+  width: calc(100% - 22px);
   padding: 10px;
   font-size: 1.2em;
   border-radius: 5px;
@@ -71,6 +92,63 @@ h1 {
 
 .text-input:disabled {
   background-color: #f8f9f9;
+}
+
+/* ghost text start */
+.input-container {
+  position: relative;
+  width: 100%;
+  border: 1px solid #ccc;
+  padding: 10px;
+  min-height: 100px;
+  font-family: monospace;
+  font-size: 1.2em;
+  line-height: 1.5;
+  background: white;
+}
+
+#inputField {
+  position: relative;
+  z-index: 3;
+  caret-color: black;
+  color: transparent;
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  height: 100%;
+  resize: none;
+  overflow: hidden;
+}
+
+#ghostText {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  pointer-events: none;
+  z-index: 2;
+  color: rgba(0, 0, 0, 0.2);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  height: calc(100% - 20px);
+}
+
+.ghost-char {
+  display: inline;
+  position: relative;
+  white-space: pre-wrap;
+}
+
+.typed-char {
+  color: black;
+  position: relative;
+  z-index: 3;
+}
+
+.typed-char.incorrect {
+  color: red;
+  text-decoration: underline;
 }
 
 button {

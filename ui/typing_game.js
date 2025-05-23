@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   // --- DOM Elements ---
-  const sentenceDisplay = document.getElementById("sentenceDisplay");
-  const textInput = document.getElementById("textInput");
+  const ghostText = document.getElementById("ghostText");
+  const inputField = document.getElementById("inputField");
   const progressBar = document.getElementById("progressBar");
   const progressText = document.getElementById("progressText");
   const startGameBtn = document.getElementById("startGameBtn");
@@ -9,16 +9,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const wpmResult = document.getElementById("wpmResult");
   const accuracyResult = document.getElementById("accuracyResult");
   const restartGameBtn = document.getElementById("restartGameBtn");
+  const timeRemainingText = document.getElementById("timeRemainingText");
+  const timerProgressBar = document.getElementById("timerProgressBar");
 
   // --- Game State ---
-  let sentences = []; // Will be populated by fetchSentences or a default set
+  let sentences = [];
   const TOTAL_SENTENCES = 10;
+  const TIME_PER_SENTENCE = 30;
   let currentSentenceIndex = 0;
   let gameStartTime;
   let totalCorrectWords = 0;
   let totalWordsInGame = 0;
+  let sentenceTimerInterval;
+  let timeLeftInSentence;
 
-  // --- Sample Sentences (Replace with fetched sentences from your backend) ---
   const sampleSentences = [
     "The quick brown fox jumps over the lazy dog.",
     "Pack my box with five dozen liquor jugs.",
@@ -32,22 +36,8 @@ document.addEventListener("DOMContentLoaded", () => {
     "Two driven jocks help fax my big quiz.",
   ];
 
-  // --- Functions ---
-
-  // In a real application, you'd fetch sentences from your Python backend.
-  // For now, we'll use the sample sentences.
   async function initializeSentences() {
-    // Placeholder for fetching sentences.
-    // For example, if your Python script runs an API:
-    // try {
-    //     const response = await fetch('/api/get-sentences?count=' + TOTAL_SENTENCES);
-    //     sentences = await response.json();
-    //     if (sentences.length !== TOTAL_SENTENCES) throw new Error("Not enough sentences");
-    // } catch (error) {
-    //     console.error("Failed to fetch sentences, using samples:", error);
-    //     sentences = sampleSentences;
-    // }
-    sentences = sampleSentences; // Using sample sentences for this example
+    sentences = sampleSentences;
   }
 
   function startGame() {
@@ -57,27 +47,115 @@ document.addEventListener("DOMContentLoaded", () => {
       totalWordsInGame = 0;
       gameStartTime = new Date();
 
-      textInput.disabled = false;
-      textInput.value = "";
-      textInput.focus();
+      inputField.contentEditable = true;
+      inputField.textContent = "";
+      ghostText.textContent = "";
+      inputField.focus();
 
       resultsDisplay.style.display = "none";
       startGameBtn.style.display = "none";
+
+      stopSentenceTimer();
+      timeRemainingText.textContent = "--";
+      timerProgressBar.style.width = "100%";
 
       loadNextSentence();
       updateProgress();
     });
   }
 
+  function startSentenceTimer() {
+    stopSentenceTimer();
+    timeLeftInSentence = TIME_PER_SENTENCE;
+    timeRemainingText.textContent = timeLeftInSentence;
+    timerProgressBar.style.width = "100%";
+    timerProgressBar.style.backgroundColor = "#2ecc71";
+
+    sentenceTimerInterval = setInterval(() => {
+      timeLeftInSentence--;
+      timeRemainingText.textContent = timeLeftInSentence;
+      const percentageLeft = (timeLeftInSentence / TIME_PER_SENTENCE) * 100;
+      timerProgressBar.style.width = percentageLeft + "%";
+
+      if (
+        timeLeftInSentence <= TIME_PER_SENTENCE / 2 &&
+        timeLeftInSentence > TIME_PER_SENTENCE / 4
+      ) {
+        timerProgressBar.style.backgroundColor = "#f39c12";
+      } else if (timeLeftInSentence <= TIME_PER_SENTENCE / 4) {
+        timerProgressBar.style.backgroundColor = "#e74c3c";
+      }
+
+      if (timeLeftInSentence <= 0) {
+        stopSentenceTimer();
+        processSentenceCompletion(true);
+      }
+    }, 1000);
+  }
+
+  function stopSentenceTimer() {
+    clearInterval(sentenceTimerInterval);
+  }
+
   function loadNextSentence() {
+    stopSentenceTimer();
     if (currentSentenceIndex < TOTAL_SENTENCES) {
-      sentenceDisplay.textContent = sentences[currentSentenceIndex];
-      textInput.value = ""; // Clear input for the new sentence
-      textInput.focus();
+      const sentence = sentences[currentSentenceIndex];
+      createGhostText(sentence);
+      inputField.innerHTML = "";
+      inputField.focus();
+      startSentenceTimer();
     } else {
       endGame();
     }
   }
+
+  function createGhostText(sentence) {
+    ghostText.innerHTML = sentence
+      .split("")
+      .map((c) => `<span class="ghost-char">${c === " " ? "&nbsp;" : c}</span>`)
+      .join("");
+  }
+
+  function handleInput() {
+    const typedText = inputField.textContent;
+    const targetText = sentences[currentSentenceIndex];
+    let newHtml = "";
+    let allCorrect = true;
+
+    for (let i = 0; i < targetText.length; i++) {
+      const targetChar = targetText[i];
+      const typedChar = typedText[i] || "";
+      const isCorrect = typedChar === targetChar;
+
+      newHtml += `
+      <span class="ghost-char">
+        ${targetChar === " " ? "&nbsp;" : targetChar}
+        ${
+          typedChar
+            ? `
+          <span class="typed-char ${!isCorrect ? "incorrect" : ""}">
+            ${typedChar === " " ? "&nbsp;" : typedChar}
+          </span>
+        `
+            : ""
+        }
+      </span>
+    `;
+
+      if (!isCorrect) allCorrect = false;
+    }
+
+    ghostText.innerHTML = newHtml;
+
+    // Auto-submit when fully typed correctly
+    if (allCorrect && typedText.length === targetText.length) {
+      processSentenceCompletion(false);
+    }
+  }
+
+  // Update event listener
+  inputField.addEventListener("input", handleInput);
 
   function updateProgress() {
     const progressPercentage = (currentSentenceIndex / TOTAL_SENTENCES) * 100;
@@ -85,21 +163,27 @@ document.addEventListener("DOMContentLoaded", () => {
     progressText.textContent = `Sentence ${currentSentenceIndex} of ${TOTAL_SENTENCES}`;
   }
 
-  function processSentenceCompletion() {
-    const typedText = textInput.value.trim();
-    const currentTargetSentence = sentences[currentSentenceIndex];
+  function processSentenceCompletion(isTimeout = false) {
+    stopSentenceTimer();
 
+    const currentTargetSentence = sentences[currentSentenceIndex];
     const targetWords = currentTargetSentence
       .split(/\s+/)
       .filter((word) => word.length > 0);
-    const typedWords = typedText.split(/\s+/).filter((word) => word.length > 0);
-
     totalWordsInGame += targetWords.length;
 
-    for (let i = 0; i < targetWords.length; i++) {
-      if (i < typedWords.length && typedWords[i] === targetWords[i]) {
-        totalCorrectWords++;
+    if (!isTimeout) {
+      const typedText = inputField.textContent.trim();
+      const typedWords = typedText
+        .split(/\s+/)
+        .filter((word) => word.length > 0);
+      for (let i = 0; i < targetWords.length; i++) {
+        if (i < typedWords.length && typedWords[i] === targetWords[i]) {
+          totalCorrectWords++;
+        }
       }
+    } else {
+      console.log(`Sentence ${currentSentenceIndex + 1} timed out.`);
     }
 
     currentSentenceIndex++;
@@ -108,9 +192,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function endGame() {
-    textInput.disabled = true;
-    textInput.value = ""; // Clear input field
-    sentenceDisplay.textContent = "Game Over!";
+    stopSentenceTimer();
+    inputField.contentEditable = false;
+    inputField.textContent = "";
+    ghostText.textContent = "";
+    timeRemainingText.textContent = "--";
+    timerProgressBar.style.width = "0%";
 
     const gameEndTime = new Date();
     const timeElapsedInSeconds = (gameEndTime - gameStartTime) / 1000;
@@ -129,40 +216,29 @@ document.addEventListener("DOMContentLoaded", () => {
     wpmResult.textContent = wpm;
     accuracyResult.textContent = accuracy;
     resultsDisplay.style.display = "block";
-    startGameBtn.style.display = "block"; // Show as "Play Again" or change text
+    startGameBtn.style.display = "block";
     startGameBtn.textContent = "Play Again?";
     progressText.textContent = `Completed ${TOTAL_SENTENCES} sentences!`;
   }
 
-  // --- Event Listeners ---
+  // Event Listeners
   startGameBtn.addEventListener("click", startGame);
-  restartGameBtn.addEventListener("click", startGame); // restartGameBtn in results also calls startGame
+  restartGameBtn.addEventListener("click", startGame);
 
-  textInput.addEventListener("keypress", (event) => {
-    if (event.key === "Enter" && !textInput.disabled) {
-      event.preventDefault(); // Prevent default Enter behavior (like adding a new line)
-      if (textInput.value.trim() !== "") {
-        // Only process if there's some input
-        processSentenceCompletion();
+  inputField.addEventListener("keypress", (event) => {
+    if (event.key === "Enter" && !inputField.contentEditable) {
+      event.preventDefault();
+      if (
+        inputField.textContent.trim() !== "" ||
+        sentences[currentSentenceIndex]
+      ) {
+        processSentenceCompletion(false);
       }
     }
   });
 
-  // Optional: Auto-submit if typed length matches sentence length (can be tricky with punctuation/spacing)
-  // textInput.addEventListener('input', () => {
-  //     if (!textInput.disabled && currentSentenceIndex < TOTAL_SENTENCES) {
-  //         const typedText = textInput.value;
-  //         const currentTargetSentence = sentences[currentSentenceIndex];
-  //         if (typedText.length === currentTargetSentence.length) {
-  //              // Potentially add a small delay or check if last char matches before auto-submitting
-  //             if (typedText === currentTargetSentence) { // Strict match for auto-submit
-  //                 processSentenceCompletion();
-  //             }
-  //         }
-  //     }
-  // });
-
-  // Initialize
+  // Initial UI state
   progressText.textContent = `Sentence 0 of ${TOTAL_SENTENCES}`;
-  sentenceDisplay.textContent = 'Press "Start Game" to begin.';
+  timeRemainingText.textContent = "--";
+  timerProgressBar.style.width = "100%";
 });

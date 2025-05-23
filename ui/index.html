@@ -15,17 +15,22 @@
       </div>
       <p id="progressText">Sentence 0 of 10</p>
 
-      <div id="sentenceDisplay" class="sentence-display">
-        Press "Start Game" to begin.
+      <div class="timer-info">
+        Time for this sentence: <span id="timeRemainingText">--</span>s
+      </div>
+      <div class="progress-container timer-progress-container">
+        <div
+          class="progress-bar timer-progress-bar"
+          id="timerProgressBar"
+        ></div>
       </div>
 
-      <textarea
-        id="textInput"
-        class="text-input"
-        rows="3"
-        placeholder="Start typing here..."
-        disabled
-      ></textarea>
+      <div class="text-input-container">
+        <div class="input-container">
+          <div id="ghostText"></div>
+          <div id="inputField" contenteditable="true"></div>
+        </div>
+      </div>
 
       <button id="startGameBtn">Start Game</button>
 
