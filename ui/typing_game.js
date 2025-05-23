@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Game State ---
   let sentences = [];
   const TOTAL_SENTENCES = 10;
-  const TIME_PER_SENTENCE = 30;
+  const TIME_PER_SENTENCE = 30; /* CHANGE THIS TO 30 */
   let currentSentenceIndex = 0;
   let gameStartTime;
   let totalCorrectWords = 0;
