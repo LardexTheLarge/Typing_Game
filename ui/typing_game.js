@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Game State ---
   let sentences = [];
   const TOTAL_SENTENCES = 10;
-  const TIME_PER_SENTENCE = 30; /* CHANGE THIS TO 30 */
+  const TIME_PER_SENTENCE = 35; /* CHANGE THIS TO 35 */
   let currentSentenceIndex = 0;
   let gameStartTime;
   let totalCorrectWords = 0;
@@ -37,7 +37,40 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   async function initializeSentences() {
-    sentences = sampleSentences;
+    // --- Try to fetch sentences from the backend ---
+    try {
+      // Flask backend is running on http://127.0.0.1:5000
+      const response = await fetch("http://127.0.0.1:5000/get-sentences");
+
+      if (!response.ok) {
+        // response is not OK, throw an error to be caught by the catch block
+        throw new Error(`Network response was not ok: ${response.statusText}`);
+      }
+
+      const fetchedSentences = await response.json();
+
+      if (
+        fetchedSentences &&
+        fetchedSentences.length === TOTAL_SENTENCES &&
+        !fetchedSentences.some((s) => s.includes("Error:"))
+      ) {
+        sentences = fetchedSentences;
+        console.log("Sentences fetched from backend:", sentences);
+      } else {
+        // fetched sentences are invalid or not the correct number, use fallback
+        console.error(
+          "Invalid sentences from backend or wrong count, using sample sentences."
+        );
+        sentences = sampleSentences; // Fallback to hardcoded sentences
+      }
+    } catch (error) {
+      // there's an error during fetch (e.g., backend not running, network issue)
+      console.error(
+        "Failed to fetch sentences from backend, using sample sentences:",
+        error
+      );
+      sentences = sampleSentences; // Fallback to hardcoded sentences
+    }
   }
 
   function startGame() {

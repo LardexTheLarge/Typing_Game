@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 zephyr-quiklang-3b.Q4_K_M.gguf
+Document.rtf
 # C extensions
 *.so
 
