@@ -4,7 +4,7 @@
 
 This application serves as an AI-powered typing test generator, hosting a lightweight Zephyr language model locally to produce unique sentences for typing. When users begin the test, sentences through the API endpoint, the system generates 10 distinct typing prompts by processing AI outputs through rigorous cleaning and validation filters—ensuring proper capitalization, punctuation, and minimum length. The solution features multiple fallback mechanisms, automatically switching to curated sentences if model loading fails or generation attempts exceed retry limits. Optimized for local execution with GPU offloading and multi-threading.
 
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://mit-license.org/)
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ This application serves as an AI-powered typing test generator, hosting a lightw
 
 ## Installation
 
-N/A
+pip install -r requirements.txt
 
 ## Usage
 

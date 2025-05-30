@@ -1,0 +1,5 @@
+flask
+CORS
+llama-cpp-python
+mlflow
+pandas
